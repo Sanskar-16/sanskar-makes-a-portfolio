@@ -1,0 +1,60 @@
+name: Build and Deploy to GCP Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: europe-west2 # London
+  SERVICE_NAME: sanskar-portfolio
+  AR_REPO_NAME: portfolio-docker-repo
+
+jobs:
+  deploy:
+    name: Build & Deploy Container
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate with Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set Up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker europe-west2-docker.pkg.dev --quiet
+
+      - name: Build, Tag, and Push Docker Image
+        run: |
+          IMAGE_TAG="europe-west2-docker.pkg.dev/$PROJECT_ID/$AR_REPO_NAME/$SERVICE_NAME:$GITHUB_SHA"
+          IMAGE_LATEST="europe-west2-docker.pkg.dev/$PROJECT_ID/$AR_REPO_NAME/$SERVICE_NAME:latest"
+          
+          # Build the Docker image
+          docker build -t "$IMAGE_TAG" -t "$IMAGE_LATEST" .
+          
+          # Push the Docker image
+          docker push "$IMAGE_TAG"
+          docker push "$IMAGE_LATEST"
+
+      - name: Deploy Container to Google Cloud Run
+        id: deploy-cloudrun
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          image: europe-west2-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          region: ${{ env.REGION }}
+          # Enables public (unauthenticated) access
+          flags: '--allow-unauthenticated'
+
+      - name: Summarise Deployment URL
+        run: |
+          echo "Deployment successful! Service URL: ${{ steps.deploy-cloudrun.outputs.url }}"
