@@ -1518,7 +1518,7 @@ export default function Home() {
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", flex: "1 1 50%" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
                   <img 
-                    src={githubProfile ? githubProfile.avatarUrl : "/developer_funkopop.png"} 
+                    src={githubProfile ? githubProfile.avatarUrl : "/sanskar_reply_fde_funkopop.png"} 
                     alt="Sanskar Gupta" 
                     style={{ width: "42px", height: "42px", borderRadius: "50%", border: "1.5px solid var(--accent-clay)", background: "#fff" }} 
                   />
