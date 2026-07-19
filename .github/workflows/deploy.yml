@@ -7,7 +7,7 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: europe-west2 # London
+  REGION: us-central1 # US Central (Supports Domain Mapping)
   SERVICE_NAME: sanskar-portfolio
   AR_REPO_NAME: portfolio-docker-repo
 
